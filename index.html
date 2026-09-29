@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UseableFocus — Tools for camera assistants</title>
+<meta name="description" content="Simple, fast tools for camera assistants and focus pullers.">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --amber: #f5a623;
+    --blue: #7eb8f7;
+    --text: #e8e8e8;
+    --muted: #666;
+    --card: rgba(255,255,255,0.04);
+    --border: rgba(255,255,255,0.08);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); }
+  body {
+    font-family: 'Courier New', monospace;
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 48px 20px 24px;
+  }
+  main { width: 100%; max-width: 480px; flex: 1; }
+  .brand {
+    color: var(--amber);
+    font-size: 22px;
+    font-weight: bold;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 32px;
+  }
+  a.tool {
+    display: block;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  a.tool:hover, a.tool:focus-visible {
+    border-color: var(--amber);
+    background: rgba(245,166,35,0.06);
+    outline: none;
+  }
+  .tool-name { color: #fff; font-size: 15px; font-weight: bold; margin-bottom: 6px; }
+  .tool-desc { color: #999; font-size: 12px; line-height: 1.5; }
+  .tool-arrow { float: right; color: var(--amber); font-size: 18px; }
+  footer { width: 100%; max-width: 480px; text-align: center; padding-top: 32px; color: #444; font-size: 11px; letter-spacing: 0.1em; }
+</style>
+</head>
+<body>
+<main>
+  <div class="brand">UseableFocus</div>
+  <a class="tool" href="/split-diopter-calc/">
+    <span class="tool-arrow">→</span>
+    <div class="tool-name">Split Diopter Calculator</div>
+    <div class="tool-desc">Enter your far and near subject distances and get the diopter strength you need.</div>
+  </a>
+</main>
+<footer>© Stephen McBride</footer>
+</body>
+</html>
