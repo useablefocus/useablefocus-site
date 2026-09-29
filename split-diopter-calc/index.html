@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Split Diopter Calculator</title>
+<style>
+  html, body { margin: 0; background: #0a0a0a; }
+  input[type=number] { -moz-appearance: textfield; }
+</style>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState } = React;
+
+const DIOPTERS = [0.25, 0.5, 1, 2, 3];
+const DIOPTER_LABELS = { 0.25: "+¼", 0.5: "+½", 1: "+1", 2: "+2", 3: "+3" };
+
+function feetInchesToMeters(feet, inches) {
+  return (feet * 12 + inches) * 0.0254;
+}
+
+function metersToFeetInches(m) {
+  const totalInches = m / 0.0254;
+  const ft = Math.floor(totalInches / 12);
+  const inch = Math.round(totalInches % 12);
+  return `${ft}'${inch}"`;
+}
+
+function DistanceInput({ label, feet, inches, onFeetChange, onInchesChange, color }) {
+  const inputStyle = {
+    width: "100%",
+    background: "rgba(0,0,0,0.4)",
+    border: `1px solid ${color}55`,
+    borderRadius: 6,
+    color: "#fff",
+    fontSize: 28,
+    fontFamily: "'Courier New', monospace",
+    fontWeight: "bold",
+    textAlign: "center",
+    padding: "8px 0",
+    outline: "none",
+    boxSizing: "border-box",
+  };
+  const capStyle = { textAlign: "center", color: "#666", fontSize: 11, marginTop: 4, fontFamily: "'Courier New', monospace" };
+  return (
+    <div style={{
+      background: "rgba(255,255,255,0.04)",
+      border: `1px solid ${color}33`,
+      borderRadius: 8,
+      padding: "16px 20px",
+    }}>
+      <div style={{ color: color, fontSize: 11, fontFamily: "'Courier New', monospace", letterSpacing: "0.15em", marginBottom: 12, textTransform: "uppercase" }}>
+        {label}
+      </div>
+      <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+        <div style={{ flex: 1 }}>
+          <input type="number" inputMode="numeric" min="0" max="999" value={feet}
+            onChange={e => onFeetChange(parseInt(e.target.value) || 0)} style={inputStyle} />
+          <div style={capStyle}>FEET</div>
+        </div>
+        <div style={{ color: "#444", fontSize: 24, fontWeight: "bold", marginBottom: 18 }}>′</div>
+        <div style={{ flex: 1 }}>
+          <input type="number" inputMode="numeric" min="0" max="11" value={inches}
+            onChange={e => onInchesChange(Math.min(11, parseInt(e.target.value) || 0))} style={inputStyle} />
+          <div style={capStyle}>INCHES</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const [farFt, setFarFt] = useState(8);
+  const [farIn, setFarIn] = useState(5);
+  const [nearFt, setNearFt] = useState(5);
+  const [nearIn, setNearIn] = useState(8);
+
+  const farM = feetInchesToMeters(farFt, farIn);
+  const nearM = feetInchesToMeters(nearFt, nearIn);
+
+  const valid = farM > 0 && nearM > 0 && nearM < farM;
+  const exact = valid ? (1 / nearM) - (1 / farM) : null;
+
+  const closest = valid
+    ? DIOPTERS.reduce((a, b) => Math.abs(b - exact) < Math.abs(a - exact) ? b : a)
+    : null;
+
+  const actualNearM = valid && closest ? 1 / ((1 / farM) + closest) : null;
+  const error = valid && actualNearM ? actualNearM - nearM : null;
+  const errorInches = error ? Math.round(Math.abs(error) / 0.0254) : 0;
+
+  return (
+    <div style={{
+      minHeight: "100vh",
+      background: "#0a0a0a",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      fontFamily: "'Courier New', monospace",
+      padding: 20,
+      boxSizing: "border-box",
+    }}>
+      <div style={{ width: "100%", maxWidth: 420 }}>
+        <div style={{ marginBottom: 28, textAlign: "center" }}>
+          <div style={{ color: "#f5a623", fontSize: 11, letterSpacing: "0.25em", marginBottom: 6 }}>SPLIT DIOPTER CALCULATOR</div>
+          <div style={{ color: "#333", fontSize: 11, letterSpacing: "0.1em" }}>D = (1/near) − (1/far)</div>
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 20 }}>
+          <DistanceInput label="Far Subject — lens focused here" feet={farFt} inches={farIn}
+            onFeetChange={setFarFt} onInchesChange={setFarIn} color="#7eb8f7" />
+          <DistanceInput label="Near Subject — in diopter half" feet={nearFt} inches={nearIn}
+            onFeetChange={setNearFt} onInchesChange={setNearIn} color="#f5a623" />
+        </div>
+
+        {!valid && farM > 0 && nearM > 0 && (
+          <div style={{
+            background: "rgba(255,80,80,0.08)",
+            border: "1px solid rgba(255,80,80,0.3)",
+            borderRadius: 8,
+            padding: "12px 16px",
+            color: "#ff6b6b",
+            fontSize: 12,
+            textAlign: "center",
+            marginBottom: 16,
+          }}>
+            Near subject must be closer than far subject
+          </div>
+        )}
+
+        {valid && exact !== null && (
+          <div style={{
+            background: "rgba(255,255,255,0.03)",
+            border: "1px solid rgba(255,255,255,0.08)",
+            borderRadius: 10,
+            overflow: "hidden",
+          }}>
+            <div style={{
+              padding: "16px 20px",
+              borderBottom: "1px solid rgba(255,255,255,0.06)",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}>
+              <div style={{ color: "#555", fontSize: 11, letterSpacing: "0.1em" }}>EXACT POWER</div>
+              <div style={{ color: "#aaa", fontSize: 16, fontWeight: "bold" }}>+{exact.toFixed(3)}D</div>
+            </div>
+
+            <div style={{
+              padding: "24px 20px",
+              borderBottom: "1px solid rgba(255,255,255,0.06)",
+              textAlign: "center",
+              background: "rgba(245,166,35,0.05)",
+            }}>
+              <div style={{ color: "#666", fontSize: 11, letterSpacing: "0.15em", marginBottom: 10 }}>USE THIS DIOPTER</div>
+              <div style={{ color: "#f5a623", fontSize: 72, fontWeight: "bold", lineHeight: 1, letterSpacing: "-2px" }}>
+                {DIOPTER_LABELS[closest]}
+              </div>
+            </div>
+
+            <div style={{ padding: "14px 20px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+              <div style={{ color: "#444", fontSize: 10, letterSpacing: "0.15em", marginBottom: 10 }}>ALL STANDARD POWERS</div>
+              <div style={{ display: "flex", gap: 6 }}>
+                {DIOPTERS.map(d => {
+                  const isClosest = d === closest;
+                  const actualDist = 1 / ((1 / farM) + d);
+                  const distStr = metersToFeetInches(actualDist);
+                  return (
+                    <div key={d} style={{
+                      flex: 1,
+                      background: isClosest ? "rgba(245,166,35,0.15)" : "rgba(255,255,255,0.03)",
+                      border: `1px solid ${isClosest ? "#f5a623" : "rgba(255,255,255,0.08)"}`,
+                      borderRadius: 6,
+                      padding: "8px 4px",
+                      textAlign: "center",
+                    }}>
+                      <div style={{ color: isClosest ? "#f5a623" : "#555", fontSize: 13, fontWeight: "bold", marginBottom: 4 }}>
+                        {DIOPTER_LABELS[d]}
+                      </div>
+                      <div style={{ color: isClosest ? "#aaa" : "#333", fontSize: 9 }}>{distStr}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div style={{ padding: "12px 20px" }}>
+              <div style={{ color: "#444", fontSize: 11, textAlign: "center" }}>
+                {DIOPTER_LABELS[closest]} lands at{" "}
+                <span style={{ color: "#888" }}>{metersToFeetInches(actualNearM)}</span>
+                {" "}—{" "}
+                <span style={{ color: errorInches <= 3 ? "#6bcb77" : errorInches <= 8 ? "#f5a623" : "#ff6b6b" }}>
+                  {errorInches}" {error > 0 ? "behind" : "in front of"} subject
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
